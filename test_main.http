@@ -1,18 +1,21 @@
 # Test your FastAPI endpoints
 
-GET http://127.0.0.1:8000/
+GET http://127.0.0.1:8080/
 Accept: application/json
 
 ###
 
-GET http://127.0.0.1:8000/hello/User
+GET http://127.0.0.1:8080/hello/User
 Accept: application/json
 
 ###
-POST http://127.0.0.1:8000/temperature
+POST http://127.0.0.1:8080/temperature
 Content-Type: application/json
 
 {
   "temperature": 23.5,
   "humidity": 55.2
 }
+
+###
+GET http://127.0.0.1:8080/history
