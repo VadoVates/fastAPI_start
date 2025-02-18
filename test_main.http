@@ -9,7 +9,7 @@ GET http://127.0.0.1:8080/hello/User
 Accept: application/json
 
 ###
-POST http://127.0.0.1:8080/temperature
+POST https://fastapi-start.onrender.com/data
 Content-Type: application/json
 
 {
