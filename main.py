@@ -13,10 +13,16 @@ from starlette.responses import StreamingResponse, Response
 app = FastAPI()
 
 load_dotenv()
-DATABASE_URL = (os.getenv("DB_PROTOCOL") + '://' + os.getenv("DB_USER") + ':' + os.getenv("DB_PASSWORD") + '@'
-                + os.getenv("DB_HOST") + ':' + os.getenv("DB_PORT") + '/' + os.getenv("DB_NAME"))
 
-engine = create_engine(DATABASE_URL)
+DB_PROTOCOL = os.getenv("DB_PROTOCOL")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_NAME = os.getenv("DB_NAME")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+
+engine = create_engine(f"{DB_PROTOCOL}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -61,7 +67,7 @@ async def temperature(data: TemperatureData, db: Session = Depends(get_db)):
 
 @app.get("/history")
 async def history(db: Session = Depends(get_db)):
-    readings = db.query(TemperatureReading).order_by(TemperatureReading.created_at.desc()).limit(10).all()
+    readings = db.query(TemperatureReading).order_by(TemperatureReading.created_at.desc()).limit(96).all()
     return [
         {
             "id" : r.id,
