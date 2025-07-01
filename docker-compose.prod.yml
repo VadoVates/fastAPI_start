@@ -113,3 +113,7 @@ services:
 volumes:
   prometheus_data:
   grafana_data:
+
+networks:
+  app_network:
+    external: true

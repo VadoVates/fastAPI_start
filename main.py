@@ -253,7 +253,8 @@ async def root():
 @app.get("/health")
 async def health(db: Session = Depends(get_db)):
     try:
-        db.execute("SELECT 1")
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
         return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
     except SQLAlchemyError:
         raise HTTPException(status_code=503, detail="Database connection error occurred")

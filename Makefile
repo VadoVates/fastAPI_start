@@ -2,16 +2,31 @@
 
 # Default target
 help:
-	@echo "Available commands:"
-	@echo "  build     - Build Docker images"
-	@echo "  up        - Start services"
-	@echo "  down      - Stop services"
-	@echo "  restart   - Restart services"
-	@echo "  logs      - Show logs"
-	@echo "  clean     - Clean up containers and images"
-	@echo "  db-shell  - Access database shell"
-	@echo "  api-shell - Access API container shell"
-	@echo "  test      - Run tests"
+	@echo ""
+	@echo "  Użycie: make <komenda>"
+	@echo ""
+	@echo "  build        — Buduj obrazy Dockera od zera"
+	@echo "  rebuild      — Zrób build od nowa i odpal kontenery"
+	@echo "  up           — Odpal kontenery w tle"
+	@echo "  down         — Zatrzymaj wszystko"
+	@echo "  restart      — Zrób porządek: stop, start"
+	@echo "  logs         — Lej logi wszystkich kontenerów"
+	@echo "  logs-api     — Lej tylko logi API"
+	@echo "  logs-db      — Lej tylko logi bazy"
+	@echo "  clean        — Wypierdol wszystko (kontenery, obrazy, volumy, osierocone)"
+	@echo "  db-shell     — Wbij się do bazy"
+	@echo "  api-shell    — Wbij się do kontenera API"
+	@echo "  health       — Sprawdź, czy API i baza żyją"
+	@echo "  backup       — Zrób backup bazy (plik SQL)"
+	@echo "  restore      — Przywróć bazę z dumpa (.dump)"
+	@echo "  test         — Odpal testy z pytesta (jeśli są)"
+	@echo "  dev-setup    — Sklonuj i przygotuj środowisko .env"
+	@echo "  prod-deploy  — Odpal produkcję z monitoringiem"
+	@echo "  prod-up      — Alias do prod-deploy"
+	@echo "  prod-down    — Zatrzymaj produkcję"
+	@echo "  config       — Pokaż finalny config docker-compose"
+	@echo "  prod-config  — Pokaż finalny config dla produkcji"
+	@echo ""
 
 # Build Docker images
 build:
@@ -69,10 +84,26 @@ dev-setup:
 	cp .env.example .env
 	@echo "Please edit .env file with your configuration"
 
-# Production deployment
+# Production deployment (merges docker-compose.yml + docker-compose.prod.yml)
 prod-deploy:
-	@echo "Deploying to production..."
+	@echo "Deploying to production with monitoring..."
 	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Alternative way to deploy prod (same result)
+prod-up:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Stop production deployment
+prod-down:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+
+# Show merged configuration (useful for debugging)
+config:
+	docker compose config
+
+# Show merged production configuration
+prod-config:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml config
 
 # Backup database
 backup:
@@ -80,5 +111,9 @@ backup:
 
 # Restore database from backup
 restore:
-	@read -p "Enter backup file path: " backup_file; \
-	docker compose exec -T db psql -U $DB_USER -d $DB_NAME < $backup_file
+	@bash -c 'source .env && \
+	read -p "Enter path to .dump file: " backup_file; \
+	docker compose exec -T db pg_restore --clean --no-owner -U $$DB_USER -d $$DB_NAME < $$backup_file'
+
+# Rebuild everything from scratch
+rebuild: down clean build up

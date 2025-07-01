@@ -1,0 +1,89 @@
+# Przykład konfiguracji dla zewnętrznego nginx zarządzającego kilkoma projektami
+# Umieść to w swoim głównym nginx (ten który zarządza kilkoma projektami)
+
+# Temperature monitoring API
+server {
+    listen 80;
+    server_name temperature.yourdomain.com;  # lub subdomena/path jak chcesz
+
+    # Proxy do FastAPI (fastapi_app:8000 wewnątrz Docker network)
+    location / {
+        proxy_pass http://fastapi_app:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # Specjalne ustawienia dla Server-Sent Events endpoint
+    location /stream {
+        proxy_pass http://fastapi_app:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # SSE specific settings
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_set_header Connection '';
+        proxy_http_version 1.1;
+        chunked_transfer_encoding off;
+
+        # CORS for SSE
+        add_header Access-Control-Allow-Origin *;
+    }
+}
+
+# Opcjonalnie: Grafana dashboard
+server {
+    listen 80;
+    server_name grafana.temperature.yourdomain.com;
+
+    location / {
+        proxy_pass http://grafana:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Opcjonalnie: Prometheus metrics (zazwyczaj nie wystawiasz publicznie)
+server {
+    listen 80;
+    server_name prometheus.temperature.yourdomain.com;
+
+    # Ogranicz dostęp do metryki tylko z określonych IP
+    allow 192.168.1.0/24;  # Twoja sieć lokalna
+    allow 10.0.0.0/8;      # Docker networks
+    deny all;
+
+    location / {
+        proxy_pass http://prometheus:9090;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# === WAŻNE: NETWORK SETUP ===
+# Żeby zewnętrzny nginx mógł się połączyć z kontenerami, musisz:
+#
+# OPCJA 1: Dodać nginx do tej samej sieci Docker
+# docker network connect <project>_app_network <nginx_container_name>
+#
+# OPCJA 2: Użyć external network w docker-compose.yml:
+# networks:
+#   app_network:
+#     external: true
+#     name: shared_network
+#
+# OPCJA 3: Połączyć przez host networking (proxy_pass http://localhost:8001)
+# ale wtedy musisz wystawiać porty w docker-compose.yml

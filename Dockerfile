@@ -18,6 +18,7 @@ FROM python:3.11-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
+    curl \
     libpq5 \
     && rm -fr /var/lib/apt/lists/* \
     && apt-get clean
