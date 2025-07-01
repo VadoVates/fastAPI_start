@@ -84,13 +84,14 @@ async def stream(db: Session = Depends(get_db)):
         last_id = None
 
         while True:
-            latest = db.query(TemperatureReading).order_by(TemperatureReading.created_at.desc()).first()
+            latest = db.query(TemperatureReading).order_by(
+              TemperatureReading.created_at.desc()).first()
             if latest and latest.id != last_id:
                 last_id = latest.id
-
                 yield f"data: {latest.temperature},{latest.humidity},{latest.created_at}\n\n"
-
-            await asyncio.sleep(5)
+            else:
+                yield ":\n\n"
+            await asyncio.sleep(30)
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.head("/")

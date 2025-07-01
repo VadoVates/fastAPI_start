@@ -10,8 +10,8 @@ services:
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_DB: "${DB_NAME}"
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -37,8 +37,8 @@ services:
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
-    ports:
-      - "8000:8000"
+#    ports:
+#      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
