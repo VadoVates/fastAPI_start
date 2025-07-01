@@ -87,7 +87,7 @@ dev-setup:
 # Production deployment (merges docker-compose.yml + docker-compose.prod.yml)
 prod-deploy:
 	@echo "Deploying to production with monitoring..."
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	docker compose --compatibility -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # Alternative way to deploy prod (same result)
 prod-up:

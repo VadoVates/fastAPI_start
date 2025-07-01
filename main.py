@@ -4,7 +4,6 @@ import os
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from http.client import HTTPException
 from typing import AsyncGenerator, List
 
 from fastapi import FastAPI, Depends, HTTPException, Request, Response

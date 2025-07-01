@@ -16,6 +16,8 @@ services:
       -c log_checkpoints=on
       -c log_connections=on
       -c log_disconnections=on
+    ports:
+      - "5432:5432"
     deploy:
       resources:
         limits:
@@ -32,14 +34,14 @@ services:
       LOG_LEVEL: INFO
       WORKERS: 4
     command: >
-      python -m uvicorn main:app
-      --host 0.0.0.0
-      --port 8000
+      python -m gunicorn main:app
+      --bind 0.0.0.0:8000
       --workers 4
       --worker-class uvicorn.workers.UvicornWorker
-      --access-log
+      --access-logfile -
       --log-level info
-      --no-use-colors
+    ports:
+      - "8000:8000"
     deploy:
       resources:
         limits:
@@ -82,10 +84,13 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=1GB'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
     networks:
       - app_network
     depends_on:
@@ -104,7 +109,9 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/custom.yml:ro
+    ports:
+      - "3000:3000"
     networks:
       - app_network
     depends_on:
@@ -116,4 +123,4 @@ volumes:
 
 networks:
   app_network:
-    external: true
+    driver: bridge

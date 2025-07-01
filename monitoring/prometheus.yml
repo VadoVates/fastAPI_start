@@ -43,9 +43,3 @@ alerting:
     - static_configs:
         - targets:
           # - alertmanager:9093
-
-# Storage configuration
-storage:
-  tsdb:
-    retention.time: 30d    # Keep data for 30 days
-    retention.size: 1GB    # Maximum storage size
