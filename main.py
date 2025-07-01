@@ -1,18 +1,20 @@
 import asyncio
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from http.client import HTTPException
 from typing import AsyncGenerator, List
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, DateTime, Float, Integer, Index, desc
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from starlette.responses import StreamingResponse, Response
+from starlette.responses import StreamingResponse, Response as StarletteResponse
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -79,6 +81,80 @@ def get_db():
     finally:
         db.close()
 
+# Metryki Prometheus
+REQUEST_COUNT = Counter(
+    'fastapi_requests_total',
+    'Total number of requests',
+    ['method', 'endpoint', 'status_code']
+)
+
+REQUEST_DURATION = Histogram(
+    'fastapi_request_duration_seconds',
+    'Request duration in seconds',
+    ['method', 'endpoint']
+)
+
+ACTIVE_CONNECTIONS = Gauge(
+    'fastapi_active_connections',
+    'Number of active connections'
+)
+
+TEMPERATURE_READINGS = Counter(
+    'temperature_readings_total',
+    'Total number of temperature readings received'
+)
+
+CURRENT_TEMPERATURE = Gauge(
+    'current_temperature_celsius',
+    'Current temperature in Celsius'
+)
+
+CURRENT_HUMIDITY = Gauge(
+    'current_humidity_percent',
+    'Current humidity percentage'
+)
+
+
+# Middleware do mierzenia requestów
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.time()
+
+    # Zwiększ licznik aktywnych połączeń
+    ACTIVE_CONNECTIONS.inc()
+
+    try:
+        response = await call_next(request)
+
+        # Zmierz czas trwania requestu
+        duration = time.time() - start_time
+        REQUEST_DURATION.labels(
+            method=request.method,
+            endpoint=request.url.path
+        ).observe(duration)
+
+        # Zwiększ licznik requestów
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status_code=response.status_code
+        ).inc()
+
+        return response
+
+    finally:
+        # Zmniejsz licznik aktywnych połączeń
+        ACTIVE_CONNECTIONS.dec()
+
+
+# Endpoint dla Prometheus
+@app.get("/metrics")
+async def get_metrics():
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
+
 @app.post("/data", response_model=StatusResponse)
 async def submit_data(data: TemperatureData, db: Session = Depends(get_db)):
     try:
@@ -86,6 +162,10 @@ async def submit_data(data: TemperatureData, db: Session = Depends(get_db)):
         db.add(reading)
         db.commit()
         db.refresh(reading)
+
+        TEMPERATURE_READINGS.inc()
+        CURRENT_TEMPERATURE.set(reading.temperature)
+        CURRENT_HUMIDITY.set(reading.humidity)
 
         logger.info(
             f"Received data: Temp={reading.temperature}°C, Humidity={reading.humidity}%, "
@@ -161,7 +241,7 @@ async def stream():
 
 @app.head("/")
 async def head():
-    return Response(status_code=200)
+    return StarletteResponse(status_code=200)
 
 @app.get("/")
 async def root():
