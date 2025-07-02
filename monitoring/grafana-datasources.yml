@@ -13,3 +13,15 @@ datasources:
       timeInterval: "5s"
       queryTimeout: "60s"
       httpMethod: "POST"
+
+##### Grafana can't read .env, so it's either a script or hardcoding sensitive data
+#  - name: PostgreSQL
+#    type: postgres
+#    access: proxy
+#    url: ${DB_PROTOCOL}://${DB_USER}:${DBPASSWORD}@postgres_db:${DB_PORT}
+#    database: ${DB_NAME}
+#    secureJsonData:
+#      password: ${DB_PASSWORD}
+#    jsonData:
+#      sslmode: disable
+#      postgresVersion: 1500
