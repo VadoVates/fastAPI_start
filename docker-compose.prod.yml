@@ -16,8 +16,8 @@ services:
       -c log_checkpoints=on
       -c log_connections=on
       -c log_disconnections=on
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
     deploy:
       resources:
         limits:
@@ -40,8 +40,8 @@ services:
       --worker-class uvicorn.workers.UvicornWorker
       --access-logfile -
       --log-level info
-    ports:
-      - "8000:8000"
+#    ports:
+#      - "8000:8000"
     deploy:
       resources:
         limits:
@@ -63,6 +63,7 @@ services:
       - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
       - ./logs:/var/log
       - /var/lib/docker/containers:/var/lib/docker/containers:ro  # Docker container logs
+      - ./logs/aggregated:/var/log/aggregated
     networks:
       - app_network
     depends_on:
@@ -89,8 +90,8 @@ services:
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
-    ports:
-      - "9090:9090"
+#    ports:
+#      - "9090:9090"
     networks:
       - app_network
     depends_on:
@@ -110,8 +111,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/custom.yml:ro
-    ports:
-      - "3000:3000"
+#    ports:
+#      - "3000:3000"
     networks:
       - app_network
     depends_on:
