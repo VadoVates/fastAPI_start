@@ -10,3 +10,4 @@ log/*
 logs/
 logs/*
 /db_backup.dump
+.idea
