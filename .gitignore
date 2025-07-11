@@ -11,3 +11,4 @@ logs/
 logs/*
 /db_backup.dump
 .idea
+backup_postgres.sh

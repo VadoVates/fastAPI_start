@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:15-alpine
     container_name: postgres_db
-    restart: unless-stopped
+    restart: always
     env_file:
       - .env
     environment:
@@ -14,7 +14,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db:/docker-entrypoint-initdb.d:ro
-    entrypoint: ["/bin/sh", "-c", "docker-entrypoint.sh postgres & sleep 5 && /docker-entrypoint-initdb.d/restore.sh && wait"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -39,7 +38,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi_app
-    restart: unless-stopped
+    restart: always
     env_file:
       - .env
     environment:
@@ -82,4 +81,4 @@ volumes:
 
 networks:
   app_network:
-    driver: bridge
+    external: true

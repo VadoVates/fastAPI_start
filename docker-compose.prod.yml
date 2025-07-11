@@ -58,6 +58,7 @@ services:
   # FLUENTD - zbiera logi z FastAPI i PostgreSQL kontenerów
   fluentd:
     image: fluent/fluentd:latest
+    restart: always
     container_name: fluentd
     volumes:
       - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
@@ -78,6 +79,7 @@ services:
   # PROMETHEUS - zbiera metryki z FastAPI (response time, requests count, etc.)
   prometheus:
     image: prom/prometheus:latest
+    restart: always
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -105,6 +107,7 @@ services:
   # GRAFANA - wizualizuje dane z Prometheus (opcjonalne)
   grafana:
     image: grafana/grafana:latest
+    restart: always
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
