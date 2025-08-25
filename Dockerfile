@@ -1,5 +1,5 @@
 # Multistage build for optimized image size
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Install system dependencies needed for building
 RUN apt-get update && apt-get install -y \
@@ -14,7 +14,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Production stage
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
