@@ -3,7 +3,7 @@ gunicorn
 uvicorn==0.34.0
 SQLAlchemy==2.0.37
 psycopg2-binary==2.9.10
-python-dotenv==1.0.1
+python-dotenv==1.1.1
 ## The following requirements were added by pip freeze:
 annotated-types==0.7.0
 anyio==4.8.0
