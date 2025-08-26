@@ -1,4 +1,4 @@
-fastapi==0.115.8
+fastapi==0.116.1
 gunicorn
 uvicorn==0.34.0
 SQLAlchemy==2.0.37
