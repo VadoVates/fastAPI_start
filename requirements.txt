@@ -1,7 +1,7 @@
 fastapi==0.115.8
 gunicorn
 uvicorn==0.34.0
-SQLAlchemy==2.0.37
+SQLAlchemy==2.0.43
 psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 ## The following requirements were added by pip freeze:
